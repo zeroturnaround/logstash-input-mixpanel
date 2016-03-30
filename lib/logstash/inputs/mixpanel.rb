@@ -6,10 +6,6 @@ require "mixpanel_client"
 require "date"
 require "time"
 
-# Generate a repeating message.
-#
-# This plugin is intented only as an example.
-
 class LogStash::Inputs::Mixpanel < LogStash::Inputs::Base
   config_name "mixpanel"
 
@@ -17,7 +13,7 @@ class LogStash::Inputs::Mixpanel < LogStash::Inputs::Base
   default :codec, "plain"
 
   #
-  config :engage, validate: :boolean, required: true
+  config :engage, validate: :boolean, required: false, default: false
 
   # The API key of the project
   config :api_key, validate: :string, required: true
@@ -60,16 +56,14 @@ class LogStash::Inputs::Mixpanel < LogStash::Inputs::Base
   end
 
   def fetch_engage(queue)
-    this_page = fetch_engage_page()
-    queue_engaged_page(queue, this_page)
+    this_page = fetch_engage_page(queue)
 
     while (this_page and this_page['results'].size > 0)
-      this_page = fetch_engage_page(this_page['page'].to_i + 1, this_page['session_id'])
-      queue_engaged_page(queue, this_page)
+      this_page = fetch_engage_page(queue, this_page['page'].to_i + 1, this_page['session_id'])
     end
   end
 
-  def fetch_engage_page(page_nr = 0, session_id = nil)
+  def fetch_engage_page(queue, page_nr = 0, session_id = nil)
     data = nil
     if (session_id)
       data = @client.request("engage", page: page_nr, session_id: session_id)

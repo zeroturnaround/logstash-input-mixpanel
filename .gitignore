@@ -1,4 +1,5 @@
 .idea
+*.iml
 *.gem
 Gemfile.lock
 Gemfile.bak
