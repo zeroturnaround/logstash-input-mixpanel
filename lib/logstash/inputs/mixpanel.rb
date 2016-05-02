@@ -21,6 +21,10 @@ class LogStash::Inputs::Mixpanel < LogStash::Inputs::Base
   # The Secret of the project
   config :api_secret, validate: :string, required: true
 
+  # from_date to_date
+  config :from_date, validate: :string, required: false, default: (Date.today - 1).to_s
+  config :to_date, validate: :string, required: false, default: (Date.today).to_s
+
   public
   def register
     @client = Mixpanel::Client.new(api_key: @api_key, api_secret: @api_secret)
@@ -46,7 +50,7 @@ class LogStash::Inputs::Mixpanel < LogStash::Inputs::Base
 
   def fetch_export(queue)
     @client
-        .request("export", from_date: (Date.today - 1).to_s, to_date: (Date.today - 1).to_s)
+        .request("export", from_date: @from_date, to_date: @to_date)
         .each do |raw_event|
       event = LogStash::Event.new raw_event
       event["@timestamp"] = LogStash::Timestamp.at(event["properties"]["time"])
